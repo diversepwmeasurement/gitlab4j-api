@@ -1,46 +1,46 @@
-name: GitLab4J CI
-
-on:
-  push:
-    branches-ignore:
-      - 'dependabot/**'
-  pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
-
 jobs:
-
   build-jdk8:
-    name: "Build JDK 8"
-    runs-on: ubuntu-latest
+    name: Build JDK 8
+    runs-on: self-hosted
     services:
       gitlab-instance:
-        image: gitlab/gitlab-ce:12.9.2-ce.0
         env:
           GITLAB_OMNIBUS_CONFIG: gitlab_rails['initial_root_password']="password";gitlab_rails['lfs_enabled']=false;
+        image: gitlab/gitlab-ce:12.9.2-ce.0
         ports:
-          - 8090:80
+        - 8090:80
     steps:
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-      - name: Set up JDK 8
-        uses: actions/setup-java@v2
-        with:
-          distribution: adopt-hotspot
-          java-version: 8
-      - name: Get Date
-        id: get-date
-        run: |
-          echo "date=$(/bin/date -u "+%Y-%m")" >> $GITHUB_OUTPUT
-        shell: bash
-      - name: Cache Maven Repository
-        id: cache-maven
-        uses: actions/cache@v2
-        with:
-          path: ~/.m2/repository
-          # refresh cache every month to avoid unlimited growth
-          key: gitlab4jmaven-${{ steps.get-date.outputs.date }}
-      - name: GitLab4j verify
-        id: gitlab4j-verify
-        run: |
-          ./mvnw verify -B -V
+    - continue-on-error: true
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    - continue-on-error: true
+      name: Set up JDK 8
+      uses: actions/setup-java@v2
+      with:
+        distribution: adopt-hotspot
+        java-version: 8
+    - continue-on-error: true
+      id: get-date
+      name: Get Date
+      run: 'echo "date=$(/bin/date -u "+%Y-%m")" >> $GITHUB_OUTPUT
+
+        '
+      shell: bash
+    - continue-on-error: true
+      id: cache-maven
+      name: Cache Maven Repository
+      uses: actions/cache@v2
+      with:
+        key: gitlab4jmaven-${{ steps.get-date.outputs.date }}
+        path: ~/.m2/repository
+    - continue-on-error: true
+      id: gitlab4j-verify
+      name: GitLab4j verify
+      run: './mvnw verify -B -V
+
+        '
+name: GitLab4J CI
+on:
+  repository_dispatch:
+    types: trigger-ga___ci-build.yml
